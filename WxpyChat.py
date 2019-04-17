@@ -123,7 +123,7 @@ class ConsoleWx(object):
     def Receive_All(self):
         @self.bot.register(except_self=False)
         def print_all_messages(msg):
-            print("[接收所有消息 ↩ ]", msg)
+            print("\n[接收所有消息 ↩ ]", msg)
         self.bot.join()
 
 
@@ -183,7 +183,9 @@ class ConsoleWx(object):
                 print(self.groupslist)
                 continue
             elif user_input == "all":
-                self.Receive_All()
+                print("\nOutput all messages to the terminal !!! ↩\n")
+                all = threading.Thread(target=self.Receive_All, args=())
+                all.start()
                 #self.bot.registered.enable(self.print_all_messages)
                 continue
             elif user_input == "close":
@@ -208,6 +210,7 @@ class ConsoleWx(object):
                     r = threading.Thread(target=self.Receive_one, args=(my_group,nowtime,))
                     #r.setDaemon(True)
                     r.start()
+                    #if "↩"  not in user_input:
                     if user_input != "" or user_input != "\n":
                         print("\n↪ {}: {}\n".format(who, user_input))
                     my_group.send(user_input)
