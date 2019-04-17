@@ -68,6 +68,7 @@ class ConsoleWx(object):
         #构造自动补全的数据
         NameCompleter = WordCompleter(FriendsGroupList, ignore_case=True)
 
+
         #初始化数据
         self.NameCompleter = NameCompleter
         self.friendslist = friendslist
@@ -111,18 +112,19 @@ class ConsoleWx(object):
         return who
 
 
-    def Receive_one(self, who, datatime):
-        @self.bot.register(who, except_self=False)
+    def Receive_one(self, who, datatime,):
+        Who = who
+        @self.bot.register(Who, except_self=False)
         def print_one_messages(msg):
-            print("\n[{} ↩]".format(datatime), msg)
+            print("\n[{} {}@{} ↩ ]".format(datatime, Who, self.myself), msg)
         self.bot.join()
 
 
     def Receive_All(self):
         @self.bot.register(except_self=False)
         def print_all_messages(msg):
-            print(msg)
-        embed()
+            print("[接收所有消息 ↩ ]", msg)
+        self.bot.join()
 
 
     def Print_help(self):
@@ -170,7 +172,7 @@ class ConsoleWx(object):
             elif user_input == "h" or user_input == "help":
                 self.Print_help()
             elif user_input == "u":
-                self.bot.registered.disable(print_one_messages)
+                #self.bot.registered.enable(self.print_one_messages)
                 who = self.Get_who_msg()
                 self.SendRecv(who, nowtime, user_input)
                 continue
@@ -182,10 +184,11 @@ class ConsoleWx(object):
                 continue
             elif user_input == "all":
                 self.Receive_All()
-                self.bot.registered.enable(print_all_messages)
+                #self.bot.registered.enable(self.print_all_messages)
                 continue
             elif user_input == "close":
-                self.bot.registered.disable(print_all_messages)
+                #self.bot.registered.disable(self.print_all_messages)
+                print("功能正在开发中......")
                 continue
             elif user_input == "q":
                 print("Logout Success!")
@@ -197,7 +200,7 @@ class ConsoleWx(object):
                     r = threading.Thread(target=self.Receive_one, args=(my_friends,nowtime,))
                     #r.setDaemon(True)
                     r.start()
-                    if user_input != "":
+                    if user_input != "" or user_input != "\n":
                         print("\n↪ {}: {}\n".format(who, user_input))
                     my_friends.send(user_input)
                 else:
@@ -205,7 +208,7 @@ class ConsoleWx(object):
                     r = threading.Thread(target=self.Receive_one, args=(my_group,nowtime,))
                     #r.setDaemon(True)
                     r.start()
-                    if user_input != "":
+                    if user_input != "" or user_input != "\n":
                         print("\n↪ {}: {}\n".format(who, user_input))
                     my_group.send(user_input)
             continue
