@@ -116,7 +116,7 @@ class ConsoleWx(object):
         Who = re.sub(">", "", str(who).split()[1])
         @self.bot.register(who, except_self=False)
         def print_one_messages(msg):
-            print("\n[{} {}@{} ↩ ]".format(datatime, Who, self.myself), msg)
+            print("\n[{} 【{}】@{} ↩ ]".format(datatime, Who, self.myself), msg)
         self.bot.join()
 
 
