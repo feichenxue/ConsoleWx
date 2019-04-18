@@ -170,7 +170,7 @@ class ConsoleWx(object):
             elif who in self.groupslist:
                 inputflag = nowtime + " {root}@【{who}】 <群聊> #按u可切换用户 ↪".format(root=self.myself, who=who)
 
-            user_input = prompt('[{}]: '.format(inputflag), history=FileHistory('send.txt'),
+            user_input = prompt('\n[{}]: '.format(inputflag), history=FileHistory('send.txt'),
                                             auto_suggest=AutoSuggestFromHistory(),
                                             completer=self.Emoticon,
                                            )
