@@ -213,7 +213,7 @@ class ConsoleWx(object):
                     #r.setDaemon(True)
                     r.start()
                     if user_input != "" or user_input != "\n":
-                        print("↪ {}: {}\n".format(who, user_input))
+                        print("\n↪ {}: {}\n".format(who, user_input))
                     my_friends.send(user_input)
                 else:
                     my_group = self.getgroup(who)
@@ -222,7 +222,7 @@ class ConsoleWx(object):
                     r.start()
                     #if "↩"  not in user_input:
                     if user_input != "" or user_input != "\n":
-                        print("↪ {}: {}\n".format(who, user_input))
+                        print("\n↪ {}: {}\n".format(who, user_input))
                     my_group.send(user_input)
             continue
 
