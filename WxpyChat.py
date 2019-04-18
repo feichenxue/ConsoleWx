@@ -67,10 +67,19 @@ class ConsoleWx(object):
 
         #构造自动补全的数据
         NameCompleter = WordCompleter(FriendsGroupList, ignore_case=True)
+        Emoticon = WordCompleter(['[捂脸]','[微笑]', '[撇嘴]', '[色]', '[发呆]', '[得意]', '[大哭]', '[尴尬]', '[发怒]', '[调皮]', '[呲牙]',
+            '[吐]', '[偷笑]', '[愉快]', '[白眼]', '[傲慢]', '[流泪]', '[惊讶]', '[困]', '[害羞]', '[难过]', '[惊恐]', '[闭嘴]', '[囧]', '[流汗]',
+            '[睡]', '[抓狂]', '[憨笑]', '[敲打]', '[鄙视]', '[悠闲]', '[再见]', '[委屈]', '[奋斗]', '[擦汗]', '[快哭了]', '[咒骂]', '[抠鼻]', '[阴脸]', 
+            '[疑问]', '[鼓掌]', '[亲亲]', '[嘘]', '[坏笑]', '[可怜]', '[晕]', '[左哼哼]', '[右哼哼]', '[菜刀]', '[衰]', '[西瓜]', '[骷髅]', '[哈欠]', 
+            '[啤酒]', '[炸弹]', '[抱拳]', '[咖啡]', '[便便]', '[勾引]', '[猪头]', '[月亮]', '[拳头]', '[玫瑰]', '[太阳]', '[OK]', '[凋谢]', '[拥抱]', 
+            '[跳跳]', '[嘴唇]', '[强]', '[发抖]', '[爱心]', '[弱]', '[怄火]', '[心碎]', '[握手]', '[转圈]', '[蛋糕]', '[胜利]', '[笑脸]', '[礼物]',
+            '[生病]', '[奸笑]', '[红包]', '[破涕为笑]', '[机智]', '[發]', '[吐舌]', '[皱眉]', '[福]', '[脸红]', '[耶]', '[恐惧]', '[鬼魂]', '[失望]',
+            '[合十]', '[无语]', '[强壮]', '[嘿哈]', '[庆祝]'])
 
 
         #初始化数据
         self.NameCompleter = NameCompleter
+        self.Emoticon = Emoticon
         self.friendslist = friendslist
         self.groupslist = groupslist
         self.myself = myself
@@ -163,6 +172,7 @@ class ConsoleWx(object):
 
             user_input = prompt('[{}]: '.format(inputflag), history=FileHistory('send.txt'),
                                             auto_suggest=AutoSuggestFromHistory(),
+                                            completer=self.Emoticon,
                                            )
             #删除用户输入的空格
             user_input = user_input.strip()
