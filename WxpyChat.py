@@ -23,9 +23,11 @@ class ConsoleWx(object):
         info = """当前运行平台为 Linux. 请将此二维码全部复制到windowns平台上的编辑器打开，用手机微信扫码登录!若已经登录，请忽略！
         (注：白色背景色的编辑器请将console_qr的值设置为-2，非白背景色的设置为2)
         """
+        #初始化颜色
         SysType = sys.platform
         if SysType == "linux":
-            print(info)
+            print(Fore.RED + info)
+            print(Style.RESET_ALL)
             bot = Bot(console_qr=2,cache_path=True)
         else:
             SysType = "Windows"
@@ -101,7 +103,7 @@ class ConsoleWx(object):
 
     def Get_who_msg(self):
         while True:
-            print("您想与谁建立会话关系呢？\n")
+            print(Fore.MAGENTA + "您想与谁建立会话关系呢？\n", Style.RESET_ALL)
             who = prompt('[请输入建立会话的用户名(注: 按tab键可自动补全用户名)]: ', history=FileHistory('who.txt'),
                         auto_suggest=AutoSuggestFromHistory(),
                         completer=self.NameCompleter,
@@ -122,17 +124,23 @@ class ConsoleWx(object):
 
 
     def Receive_one(self, who, datatime):
+        # rLock = threading.RLock()  #RLock对象
         Who = re.sub(">", "", str(who).split()[1])
         @self.bot.register(who, except_self=False)
         def print_one_messages(msg):
-            print("\n[{} 【{}】@{} ↩ ]".format(datatime, Who, self.myself), msg)
+            # rLock.acquire()
+            print("\n[{} 【{}】@{} ↩ ]".format(datatime, Who, self.myself), "\033[0;32m{}\033[0m".format(msg))
+            # rLock.release()
         self.bot.join()
 
 
     def Receive_All(self):
+        rLock = threading.RLock()
         @self.bot.register(except_self=False)
         def print_all_messages(msg):
+            rLock.acquire()
             print("\n[接收所有消息 ↩ ]", msg)
+            rLock.release()
         self.bot.join()
 
 
