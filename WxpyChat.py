@@ -113,7 +113,7 @@ class ConsoleWx(object):
 
 
     def Receive_one(self, who, datatime):
-        Who = who
+        Who = re.sub(">", "", str(who).split()[1])
         @self.bot.register(Who, except_self=False)
         def print_one_messages(msg):
             print("\n[{} {}@{} ↩ ]".format(datatime, Who, self.myself), msg)
