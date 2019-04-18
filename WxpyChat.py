@@ -112,7 +112,7 @@ class ConsoleWx(object):
         return who
 
 
-    def Receive_one(self, who, datatime,):
+    def Receive_one(self, who, datatime):
         Who = who
         @self.bot.register(Who, except_self=False)
         def print_one_messages(msg):
