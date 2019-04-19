@@ -35,6 +35,7 @@ class ConsoleWx(object):
 
         #基本设置
         bot.messages.max_history = 10000
+        bot.auto_mark_as_read = True
 
         #获取登录名
         myself = re.sub(">", "", str(bot.self).split()[1])
@@ -109,7 +110,13 @@ class ConsoleWx(object):
                         completer=self.NameCompleter,
                         )
             if who == "":
-                print("输入用户不能为空!!! 请重新输入。\n")
+                print("\n输入用户不能为空!!! 请重新输入。 或按 l 或 g 列出当前用户 和 群聊[只显示当前活跃群且保存到通讯录的群聊]\n")
+                continue
+            elif who == "l":
+                print(self.friendslist)
+                continue
+            elif who == "g":
+                print(self.groupslist)
                 continue
             elif who not in self.friendslist and who not in self.groupslist:
                 print("您输入的用户名或群聊名称不存在，请您检查后重新输入！")
@@ -129,17 +136,17 @@ class ConsoleWx(object):
         @self.bot.register(who, except_self=False)
         def print_one_messages(msg):
             # rLock.acquire()
-            print("\n[{} 【{}】@{} ↩ ]".format(datatime, Who, self.myself), "\033[0;32m{}\033[0m".format(msg))
+            print("\n[{} 【{}】@{} (接收)↩]".format(datatime, Who, self.myself), "\033[0;32m{}\033[0m".format(msg))
             # rLock.release()
         self.bot.join()
 
 
-    def Receive_All(self):
+    def Receive_All(self, datatime):
         rLock = threading.RLock()
         @self.bot.register(except_self=False)
         def print_all_messages(msg):
             rLock.acquire()
-            print("\n[接收所有消息 ↩ ]", msg)
+            print("\n[{} 接收所有消息 ↩ ]".format(datatime), msg)
             rLock.release()
         self.bot.join()
 
@@ -165,6 +172,10 @@ class ConsoleWx(object):
             #r.setDaemon(True)
             r.start()
 
+    def Print_all_msg(self, nowtime):
+        all = threading.Thread(target=self.Receive_All, args=(nowtime,))
+        all.start()
+
 
     def Send_msg(self):
         #建立对象
@@ -174,7 +185,7 @@ class ConsoleWx(object):
             now = datetime.datetime.now()
             nowtime = now.strftime('%Y-%m-%d %H:%M:%S')
             if who in self.friendslist:
-                inputflag = nowtime + " {root}@【{who}】 <好友> #按u可切换用户 ↪".format(root=self.myself, who=who)
+                inputflag = nowtime + " {root}@【{who}】 <好友> #按u可切换用户 (发送)↪".format(root=self.myself, who=who)
             elif who in self.groupslist:
                 inputflag = nowtime + " {root}@【{who}】 <群聊> #按u可切换用户 ↪".format(root=self.myself, who=who)
 
@@ -201,9 +212,8 @@ class ConsoleWx(object):
                 print(self.groupslist)
                 continue
             elif user_input == "all":
-                print("\nOutput all messages to the terminal !!! ↩\n")
-                all = threading.Thread(target=self.Receive_All, args=())
-                all.start()
+                print("\nAll messages are about to start receiving !!! ↩\n")
+                self.Print_all_msg(nowtime)
                 #self.bot.registered.enable(self.print_all_messages)
                 continue
             elif user_input == "close":
