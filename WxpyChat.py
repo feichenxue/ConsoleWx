@@ -47,7 +47,19 @@ class ConsoleWx(object):
         allgroup = bot.groups()
         friendslist = []
         groupslist = []
+        GList = []
+        Mplist = []
         who = ""
+
+        #所有好友和群聊和公众号
+        ALLChats = bot.chats()
+        for all in ALLChats:
+            tmp = re.sub(">", "", str(all).split()[1])
+            if "Group" in str(all).split()[0]:
+                GList.append(tmp)
+            elif "MP" in str(all).split()[0]:
+                Mplist.append(tmp)
+
 
         #所有朋友
         for i in allfriends:
@@ -59,6 +71,7 @@ class ConsoleWx(object):
             groupname = re.sub(">", "", str(g).split()[1])
             groupslist.append(groupname)
 
+
         #添加表格数据
         table.align["登录名"] = "1"
         table.padding_width = 2
@@ -66,7 +79,7 @@ class ConsoleWx(object):
         print(table)
 
         # 合并 friendslist + groupslist
-        FriendsGroupList = friendslist + groupslist
+        FriendsGroupList = friendslist + GList
 
         #构造自动补全的数据
         NameCompleter = WordCompleter(FriendsGroupList, ignore_case=True)
@@ -77,14 +90,17 @@ class ConsoleWx(object):
             '[啤酒]', '[炸弹]', '[抱拳]', '[咖啡]', '[便便]', '[勾引]', '[猪头]', '[月亮]', '[拳头]', '[玫瑰]', '[太阳]', '[OK]', '[凋谢]', '[拥抱]', 
             '[跳跳]', '[嘴唇]', '[强]', '[发抖]', '[爱心]', '[弱]', '[怄火]', '[心碎]', '[握手]', '[转圈]', '[蛋糕]', '[胜利]', '[笑脸]', '[礼物]',
             '[生病]', '[奸笑]', '[红包]', '[破涕为笑]', '[机智]', '[發]', '[吐舌]', '[皱眉]', '[福]', '[脸红]', '[耶]', '[恐惧]', '[鬼魂]', '[失望]',
-            '[合十]', '[无语]', '[强壮]', '[嘿哈]', '[庆祝]'])
+            '[合十]', '[无语]', '[强壮]', '[嘿哈]'])
 
 
         #初始化数据
         self.NameCompleter = NameCompleter
         self.Emoticon = Emoticon
-        self.friendslist = friendslist
-        self.groupslist = groupslist
+        self.friendslist = friendslist #所有朋友
+        self.groupslist = groupslist    #仅仅保存到通讯录得群聊
+        self.GList = GList              #所有群聊
+        self.ALLChatsList = FriendsGroupList  #所有好友和群聊列表
+        self.Mplist = Mplist  #关注的微信公众号
         self.myself = myself
         self.bot = bot
 
@@ -110,13 +126,25 @@ class ConsoleWx(object):
                         completer=self.NameCompleter,
                         )
             if who == "":
-                print("\n输入用户不能为空!!! 请重新输入。 或按 l 或 g 列出当前用户 和 群聊[只显示当前活跃群且保存到通讯录的群聊]\n")
+                inputinfo = """
+                输入用户不能为空, 请重新输入!!!
+                请输入 l 或 g 列出当前用户 和 群聊[只显示当前活跃群且保存到通讯录的群聊]。
+                输入 G 显示 所有群聊。
+                输入 all 显示所有群聊和好友信息。
+                """
+                print("\n %s \n" % (inputinfo))
                 continue
             elif who == "l":
                 print(self.friendslist)
                 continue
             elif who == "g":
                 print(self.groupslist)
+                continue
+            elif who == "G":
+                print(self.GList)
+                continue
+            elif who == "all":
+                print(self.ALLChatsList)
                 continue
             elif who not in self.friendslist and who not in self.groupslist:
                 print("您输入的用户名或群聊名称不存在，请您检查后重新输入！")
@@ -153,10 +181,11 @@ class ConsoleWx(object):
 
     def Print_help(self):
         help_info = """
-        h|help)     打印帮助信息!         g)           列出所有群聊！
-        u)          切换会话用户！        all)         打印所有聊天信息！
-        l)          列出用户列表！        close)       关闭打印所有聊天信息！
-        q)          退出！               
+        h|help)     打印帮助信息!             g)           列出所有群聊（注：仅仅显示保存到通讯录的群聊)!
+        u)          切换会话用户！            all)         打印所有聊天信息！
+        l)          列出用户列表！            close)       关闭打印所有聊天信息！
+        q)          退出！                   lg)           列出所有群聊和好友！
+        m)          打印所有关注的公众号！
         """
         print(help_info)
 
@@ -210,6 +239,12 @@ class ConsoleWx(object):
                 continue
             elif user_input == "g":
                 print(self.groupslist)
+                continue
+            elif user_input == "lg":
+                print(self.ALLChatsList)
+                continue
+            elif user_input == "m":
+                print(self.Mplist)
                 continue
             elif user_input == "all":
                 print("\nAll messages are about to start receiving !!! ↩\n")
