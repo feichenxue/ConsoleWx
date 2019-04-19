@@ -23,9 +23,11 @@ class ConsoleWx(object):
         info = """当前运行平台为 Linux. 请将此二维码全部复制到windowns平台上的编辑器打开，用手机微信扫码登录!若已经登录，请忽略！
         (注：白色背景色的编辑器请将console_qr的值设置为-2，非白背景色的设置为2)
         """
+        #初始化颜色
         SysType = sys.platform
         if SysType == "linux":
-            print(info)
+            print(Fore.RED + info)
+            print(Style.RESET_ALL)
             bot = Bot(console_qr=2,cache_path=True)
         else:
             SysType = "Windows"
@@ -67,10 +69,19 @@ class ConsoleWx(object):
 
         #构造自动补全的数据
         NameCompleter = WordCompleter(FriendsGroupList, ignore_case=True)
+        Emoticon = WordCompleter(['[捂脸]','[微笑]', '[撇嘴]', '[色]', '[发呆]', '[得意]', '[大哭]', '[尴尬]', '[发怒]', '[调皮]', '[呲牙]',
+            '[吐]', '[偷笑]', '[愉快]', '[白眼]', '[傲慢]', '[流泪]', '[惊讶]', '[困]', '[害羞]', '[难过]', '[惊恐]', '[闭嘴]', '[囧]', '[流汗]',
+            '[睡]', '[抓狂]', '[憨笑]', '[敲打]', '[鄙视]', '[悠闲]', '[再见]', '[委屈]', '[奋斗]', '[擦汗]', '[快哭了]', '[咒骂]', '[抠鼻]', '[阴脸]', 
+            '[疑问]', '[鼓掌]', '[亲亲]', '[嘘]', '[坏笑]', '[可怜]', '[晕]', '[左哼哼]', '[右哼哼]', '[菜刀]', '[衰]', '[西瓜]', '[骷髅]', '[哈欠]', 
+            '[啤酒]', '[炸弹]', '[抱拳]', '[咖啡]', '[便便]', '[勾引]', '[猪头]', '[月亮]', '[拳头]', '[玫瑰]', '[太阳]', '[OK]', '[凋谢]', '[拥抱]', 
+            '[跳跳]', '[嘴唇]', '[强]', '[发抖]', '[爱心]', '[弱]', '[怄火]', '[心碎]', '[握手]', '[转圈]', '[蛋糕]', '[胜利]', '[笑脸]', '[礼物]',
+            '[生病]', '[奸笑]', '[红包]', '[破涕为笑]', '[机智]', '[發]', '[吐舌]', '[皱眉]', '[福]', '[脸红]', '[耶]', '[恐惧]', '[鬼魂]', '[失望]',
+            '[合十]', '[无语]', '[强壮]', '[嘿哈]', '[庆祝]'])
 
 
         #初始化数据
         self.NameCompleter = NameCompleter
+        self.Emoticon = Emoticon
         self.friendslist = friendslist
         self.groupslist = groupslist
         self.myself = myself
@@ -92,13 +103,19 @@ class ConsoleWx(object):
 
     def Get_who_msg(self):
         while True:
-            print("您想与谁建立会话关系呢？\n")
+            print(Fore.MAGENTA + "您想与谁建立会话关系呢？\n", Style.RESET_ALL)
             who = prompt('[请输入建立会话的用户名(注: 按tab键可自动补全用户名)]: ', history=FileHistory('who.txt'),
                         auto_suggest=AutoSuggestFromHistory(),
                         completer=self.NameCompleter,
                         )
             if who == "":
-                print("输入用户不能为空!!! 请重新输入。\n")
+                print("\n输入用户不能为空!!! 请重新输入。 或按 l 或 g 列出当前用户 和 群聊[只显示当前活跃群且保存到通讯录的群聊]\n")
+                continue
+            elif who == "l":
+                print(self.friendslist)
+                continue
+            elif who == "g":
+                print(self.groupslist)
                 continue
             elif who not in self.friendslist and who not in self.groupslist:
                 print("您输入的用户名或群聊名称不存在，请您检查后重新输入！")
@@ -113,17 +130,23 @@ class ConsoleWx(object):
 
 
     def Receive_one(self, who, datatime):
+        # rLock = threading.RLock()  #RLock对象
         Who = re.sub(">", "", str(who).split()[1])
-        @self.bot.register(Who, except_self=False)
+        @self.bot.register(who, except_self=False)
         def print_one_messages(msg):
-            print("\n[{} {}@{} ↩ ]".format(datatime, Who, self.myself), msg)
+            # rLock.acquire()
+            print("\n[{} 【{}】@{} ↩ ]".format(datatime, Who, self.myself), "\033[0;32m{}\033[0m".format(msg))
+            # rLock.release()
         self.bot.join()
 
 
     def Receive_All(self):
+        rLock = threading.RLock()
         @self.bot.register(except_self=False)
         def print_all_messages(msg):
+            rLock.acquire()
             print("\n[接收所有消息 ↩ ]", msg)
+            rLock.release()
         self.bot.join()
 
 
@@ -163,6 +186,7 @@ class ConsoleWx(object):
 
             user_input = prompt('[{}]: '.format(inputflag), history=FileHistory('send.txt'),
                                             auto_suggest=AutoSuggestFromHistory(),
+                                            completer=self.Emoticon,
                                            )
             #删除用户输入的空格
             user_input = user_input.strip()
