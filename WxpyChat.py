@@ -180,9 +180,9 @@ class ConsoleWx(object):
         def print_one_messages(msg):
             # rLock.acquire()
             if Who in self.friendslist:
-                print("\n[{} 【{}】@{} <好友> (接收)↩]: ".format(datatime, Who, self.myself), "\033[0;32m{}\033[0m".format(msg))
+                print("\n[{} 【{}】@{} <好友> (\033[1;31m接收\033[0m)↩]: ".format(datatime, Who, self.myself), "\033[0;32m{}\033[0m".format(msg))
             else:
-                print("\n[{} 【{}】@{} <群聊> (接收)↩]: ".format(datatime, Who, self.myself), "\033[0;32m{}\033[0m".format(msg))
+                print("\n[{} 【{}】@{} <群聊> (\033[1;31m接收\033[0m)↩]: ".format(datatime, Who, self.myself), "\033[0;32m{}\033[0m".format(msg))
     
             # rLock.release()
         self.bot.join()
@@ -193,7 +193,7 @@ class ConsoleWx(object):
         @self.bot.register(except_self=False)
         def print_all_messages(msg):
             rLock.acquire()
-            print("\n[{} 接收所有消息 ↩ ]".format(datatime), "\033[0;32m{}\033[0m".format(msg))
+            print("\n[{} \033[1;31m接收所有消息 ↩\033[0m]".format(datatime), "\033[0;32m{}\033[0m".format(msg))
             rLock.release()
         self.bot.join()
 
