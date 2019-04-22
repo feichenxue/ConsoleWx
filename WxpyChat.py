@@ -104,6 +104,11 @@ class ConsoleWx(object):
         self.myself = myself
         self.bot = bot
 
+    def get_datetime(self):
+        now = datetime.datetime.now()
+        nowtime = now.strftime('%Y-%m-%d %H:%M:%S')
+        return nowtime
+
 
     def getfriends(self, who):
         # 获取指定好友
@@ -127,11 +132,11 @@ class ConsoleWx(object):
                         )
             if who == "":
                 inputinfo = """
-                输入用户不能为空, 请重新输入!!!
-                请输入 l 或 g 列出当前用户 和 群聊[只显示当前活跃群且保存到通讯录的群聊]。
-                输入 G 显示 所有群聊。
-                输入 all 显示所有群聊和好友信息。
-                """
+        输入用户不能为空, 请重新输入!!!
+        请输入 l 或 g 列出当前用户 和 群聊[只显示当前活跃群且保存到通讯录的群聊]。
+        输入 G 显示 所有群聊。
+        输入 all 显示所有群聊和好友信息。
+        """
                 print("\n %s \n" % (inputinfo))
                 continue
             elif who == "l":
@@ -151,20 +156,34 @@ class ConsoleWx(object):
                 continue
             elif who in self.friendslist:
                 print("\n与[{}] <好友>建立会话成功.[OK] 可以与好友发送消息.\n".format(who))
+                nowtime = self.get_datetime
+                r= threading.Thread(target=self.Receive_one, args=(who, nowtime,))
+                r.start()
                 break
             else:
                 print("\n与[{}] <群聊>建立会话成功.[OK] 可以在群聊中发送消息.\n".format(who))
+                nowtime = self.get_datetime
+                r= threading.Thread(target=self.Receive_one, args=(who, nowtime,))
+                r.start()
                 break
         return who
 
 
     def Receive_one(self, who, datatime):
         # rLock = threading.RLock()  #RLock对象
-        Who = re.sub(">", "", str(who).split()[1])
+        if len(str(who).split()) > 1:
+            Who = re.sub(">", "", str(who).split()[1])
+        else:
+            Who = str(who).split()[0]
+
         @self.bot.register(who, except_self=False)
         def print_one_messages(msg):
             # rLock.acquire()
-            print("\n[{} 【{}】@{} (接收)↩]".format(datatime, Who, self.myself), "\033[0;32m{}\033[0m".format(msg))
+            if Who in self.friendslist:
+                print("\n[{} 【{}】@{} <好友> (接收)↩]: ".format(datatime, Who, self.myself), "\033[0;32m{}\033[0m".format(msg))
+            else:
+                print("\n[{} 【{}】@{} <群聊> (接收)↩]: ".format(datatime, Who, self.myself), "\033[0;32m{}\033[0m".format(msg))
+    
             # rLock.release()
         self.bot.join()
 
@@ -174,7 +193,7 @@ class ConsoleWx(object):
         @self.bot.register(except_self=False)
         def print_all_messages(msg):
             rLock.acquire()
-            print("\n[{} 接收所有消息 ↩ ]".format(datatime), msg)
+            print("\n[{} 接收所有消息 ↩ ]".format(datatime), "\033[0;32m{}\033[0m".format(msg))
             rLock.release()
         self.bot.join()
 
@@ -214,9 +233,9 @@ class ConsoleWx(object):
             now = datetime.datetime.now()
             nowtime = now.strftime('%Y-%m-%d %H:%M:%S')
             if who in self.friendslist:
-                inputflag = nowtime + " {root}@【{who}】 <好友> #按u可切换用户 (发送)↪".format(root=self.myself, who=who)
+                inputflag = nowtime + " {root}@【{who}】 <好友> (发送)↪".format(root=self.myself, who=who)
             elif who in self.groupslist:
-                inputflag = nowtime + " {root}@【{who}】 <群聊> #按u可切换用户 ↪".format(root=self.myself, who=who)
+                inputflag = nowtime + " {root}@【{who}】 <群聊> (发送)↪".format(root=self.myself, who=who)
 
             user_input = prompt('[{}]: '.format(inputflag), history=FileHistory('send.txt'),
                                             auto_suggest=AutoSuggestFromHistory(),
@@ -266,7 +285,8 @@ class ConsoleWx(object):
                     #r.setDaemon(True)
                     r.start()
                     if user_input != "" or user_input != "\n":
-                        print("\n↪ {}: {}\n".format(who, user_input))
+                        # print("\n↪ {}: {}\n".format(who, user_input))
+                        print("\033[0;32mSend Successfully!!!\033[0m")
                     my_friends.send(user_input)
                 else:
                     my_group = self.getgroup(who)
@@ -275,7 +295,8 @@ class ConsoleWx(object):
                     r.start()
                     #if "↩"  not in user_input:
                     if user_input != "" or user_input != "\n":
-                        print("\n↪ {}: {}\n".format(who, user_input))
+                        # print("\n↪ {}: {}\n".format(who, user_input))
+                        print("\033[0;32mSend Successfully!!!\033[0m")
                     my_group.send(user_input)
             continue
 
@@ -291,4 +312,3 @@ def main():
 
 if __name__ == '__main__':
     main()
-        
