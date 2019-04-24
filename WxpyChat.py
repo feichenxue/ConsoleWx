@@ -2,8 +2,10 @@
 # -*- coding: UTF-8 -*-
 
 import re
+import os
 import sys
 import time
+import signal
 import datetime
 import threading
 from wxpy import *
@@ -275,9 +277,9 @@ class ConsoleWx(object):
                 print("功能正在开发中......")
                 continue
             elif user_input == "q":
-                print("Logout Success!")
                 self.bot.logout
-                exit(0)
+                print("Exit Success!")
+                os.kill(os.getpid(), signal.SIGKILL)
             else:
                 if who in self.friendslist:
                     my_friends = self.getfriends(who)
