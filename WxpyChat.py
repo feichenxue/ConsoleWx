@@ -235,9 +235,9 @@ class ConsoleWx(object):
             now = datetime.datetime.now()
             nowtime = now.strftime('%Y-%m-%d %H:%M:%S')
             if who in self.friendslist:
-                inputflag = nowtime + " {root}@【{who}】 <好友> (发送)↪".format(root=self.myself, who=who)
+                inputflag = nowtime + " ({root}@【{who}】) <好友> (发送)↪".format(root=self.myself, who=who)
             elif who in self.groupslist:
-                inputflag = nowtime + " {root}@【{who}】 <群聊> (发送)↪".format(root=self.myself, who=who)
+                inputflag = nowtime + " ({root}@【{who}】) <群聊> (发送)↪".format(root=self.myself, who=who)
 
             user_input = prompt('[{}]: '.format(inputflag), history=FileHistory('send.txt'),
                                             auto_suggest=AutoSuggestFromHistory(),
