@@ -182,9 +182,9 @@ class ConsoleWx(object):
         def print_one_messages(msg):
             # rLock.acquire()
             if Who in self.friendslist:
-                print("\n[{} |【{}】@{}| <好友> (\033[1;31m接收\033[0m)↩]: ".format(datatime, Who, self.myself), "\033[0;32m{}\033[0m".format(msg))
+                print("\n[{} 【{}】@{} <好友> (\033[1;31m接收\033[0m)↩]: ".format(datatime, Who, self.myself), "\033[0;32m{}\033[0m".format(msg))
             else:
-                print("\n[{} |【{}】@{}| <群聊> (\033[1;31m接收\033[0m)↩]: ".format(datatime, Who, self.myself), "\033[0;32m{}\033[0m".format(msg))
+                print("\n[{} 【{}】@{} <群聊> (\033[1;31m接收\033[0m)↩]: ".format(datatime, Who, self.myself), "\033[0;32m{}\033[0m".format(msg))
     
             # rLock.release()
         self.bot.join()
@@ -235,9 +235,9 @@ class ConsoleWx(object):
             now = datetime.datetime.now()
             nowtime = now.strftime('%Y-%m-%d %H:%M:%S')
             if who in self.friendslist:
-                inputflag = nowtime + " |{root}@【{who}】| <好友> (发送)↪".format(root=self.myself, who=who)
+                inputflag = nowtime + " {root}@【{who}】 <好友> (发送)↪".format(root=self.myself, who=who)
             elif who in self.groupslist:
-                inputflag = nowtime + " |{root}@【{who}】| <群聊> (发送)↪".format(root=self.myself, who=who)
+                inputflag = nowtime + " {root}@【{who}】 <群聊> (发送)↪".format(root=self.myself, who=who)
 
             user_input = prompt('[{}]: '.format(inputflag), history=FileHistory('send.txt'),
                                             auto_suggest=AutoSuggestFromHistory(),
