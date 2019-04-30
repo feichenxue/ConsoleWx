@@ -170,6 +170,7 @@ class ConsoleWx(object):
                 break
         return who
 
+
     def Save_medis_one(self, msg, who):
         now = datetime.datetime.now()
         nowtime = now.strftime('%Y%m%d%H%M%S')
@@ -221,9 +222,9 @@ class ConsoleWx(object):
         def print_all_messages(msg):
             rLock.acquire()
             msgtypelist = ["Picture","Recording","Attachment","Video"]
+            print("\n[{} \033[1;31m接收所有消息 ↩\033[0m]".format(msg.receive_time), "\033[0;32m{}\033[0m".format(msg))
             if msg.type in msgtypelist:
                 datatime = self.Save_medis_all(msg)
-            print("\n[{} \033[1;31m接收所有消息 ↩\033[0m]".format(msg.receive_time), "\033[0;32m{}\033[0m".format(msg))
             rLock.release()
         self.bot.join()
 
