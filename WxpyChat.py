@@ -170,6 +170,32 @@ class ConsoleWx(object):
                 break
         return who
 
+    def Save_medis_one(self, msg, who):
+        now = datetime.datetime.now()
+        nowtime = now.strftime('%Y%m%d%H%M%S')
+        receive_time = msg.receive_time
+        msg_sender = who
+        file_name = nowtime + "-" + msg.file_name
+        save_path_name = "media/" + msg_sender
+        if not os.path.isdir(save_path_name):
+            os.makedirs(save_path_name)
+        file_path = save_path_name + "/" + file_name
+        msg.get_file(save_path=file_path)
+
+
+    def Save_medis_all(self, msg):
+        now = datetime.datetime.now()
+        nowtime = now.strftime('%Y%m%d%H%M%S')
+        receive_time = msg.receive_time
+        msg_sender = re.sub(">", "" ,str(msg.sender).split()[1])
+        file_name = nowtime + "-" + msg.file_name
+        save_path_name = "media/" + msg_sender
+        if not os.path.isdir(save_path_name):
+            os.makedirs(save_path_name)
+        file_path = save_path_name + "/" + file_name
+        msg.get_file(save_path=file_path)
+        return receive_time
+
 
     def Receive_one(self, who, datatime):
         # rLock = threading.RLock()  #RLock对象
@@ -180,22 +206,24 @@ class ConsoleWx(object):
 
         @self.bot.register(who, except_self=False)
         def print_one_messages(msg):
-            # rLock.acquire()
             if Who in self.friendslist:
                 print("\n[{} 【{}】@{} <好友> (\033[1;31m接收\033[0m)↩]: ".format(datatime, Who, self.myself), "\033[0;32m{}\033[0m".format(msg))
             else:
                 print("\n[{} 【{}】@{} <群聊> (\033[1;31m接收\033[0m)↩]: ".format(datatime, Who, self.myself), "\033[0;32m{}\033[0m".format(msg))
-    
+            self.Save_medis_one(msg, who)
             # rLock.release()
         self.bot.join()
 
 
-    def Receive_All(self, datatime):
+    def Receive_All(self):
         rLock = threading.RLock()
         @self.bot.register(except_self=False)
         def print_all_messages(msg):
             rLock.acquire()
-            print("\n[{} \033[1;31m接收所有消息 ↩\033[0m]".format(datatime), "\033[0;32m{}\033[0m".format(msg))
+            msgtypelist = ["Picture","Recording","Attachment","Video"]
+            if msg.type in msgtypelist:
+                datatime = self.Save_medis_all(msg)
+            print("\n[{} \033[1;31m接收所有消息 ↩\033[0m]".format(msg.receive_time), "\033[0;32m{}\033[0m".format(msg))
             rLock.release()
         self.bot.join()
 
@@ -222,8 +250,8 @@ class ConsoleWx(object):
             #r.setDaemon(True)
             r.start()
 
-    def Print_all_msg(self, nowtime):
-        all = threading.Thread(target=self.Receive_All, args=(nowtime,))
+    def Print_all_msg(self):
+        all = threading.Thread(target=self.Receive_All, args=())
         all.start()
 
 
@@ -269,7 +297,7 @@ class ConsoleWx(object):
                 continue
             elif user_input == "all":
                 print("\nAll messages are about to start receiving !!! ↩\n")
-                self.Print_all_msg(nowtime)
+                self.Print_all_msg()
                 #self.bot.registered.enable(self.print_all_messages)
                 continue
             elif user_input == "close":
