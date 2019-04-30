@@ -211,7 +211,7 @@ class ConsoleWx(object):
                 print("\n[{} 【{}】@{} <好友> (\033[1;31m接收\033[0m)↩]: ".format(datatime, Who, self.myself), "\033[0;32m{}\033[0m".format(msg))
             else:
                 print("\n[{} 【{}】@{} <群聊> (\033[1;31m接收\033[0m)↩]: ".format(datatime, Who, self.myself), "\033[0;32m{}\033[0m".format(msg))
-            self.Save_medis_one(msg, who)
+            self.Save_medis_one(msg, Who)
             # rLock.release()
         self.bot.join()
 
