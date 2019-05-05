@@ -176,7 +176,11 @@ class ConsoleWx(object):
         nowtime = now.strftime('%Y%m%d%H%M%S')
         receive_time = msg.receive_time
         msg_sender = who
-        file_name = nowtime + "-" + msg.file_name
+        if msg.member == "None":
+            specific_sender = msg_sender
+        else:
+            specific_sender = re.sub(">", "" ,str(msg.member).split()[1])
+        file_name = specific_sender + "-" + msg.file_name
         save_path_name = "media/" + msg_sender
         if not os.path.isdir(save_path_name):
             os.makedirs(save_path_name)
@@ -189,7 +193,11 @@ class ConsoleWx(object):
         nowtime = now.strftime('%Y%m%d%H%M%S')
         receive_time = msg.receive_time
         msg_sender = re.sub(">", "" ,str(msg.sender).split()[1])
-        file_name = nowtime + "-" + msg.file_name
+        if msg.member == "None":
+            specific_sender = msg_sender
+        else:
+            specific_sender = re.sub(">", "" ,str(msg.member).split()[1])
+        file_name = specific_sender + "-" + msg.file_name
         save_path_name = "media/" + msg_sender
         if not os.path.isdir(save_path_name):
             os.makedirs(save_path_name)
