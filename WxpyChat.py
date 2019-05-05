@@ -176,7 +176,7 @@ class ConsoleWx(object):
         nowtime = now.strftime('%Y%m%d%H%M%S')
         receive_time = msg.receive_time
         msg_sender = who
-        if msg.member == "None":
+        if str(msg.member) == "None":
             specific_sender = msg_sender
         else:
             specific_sender = re.sub(">", "" ,str(msg.member).split()[1])
@@ -193,7 +193,7 @@ class ConsoleWx(object):
         nowtime = now.strftime('%Y%m%d%H%M%S')
         receive_time = msg.receive_time
         msg_sender = re.sub(">", "" ,str(msg.sender).split()[1])
-        if msg.member == "None":
+        if str(msg.member) == "None":
             specific_sender = msg_sender
         else:
             specific_sender = re.sub(">", "" ,str(msg.member).split()[1])
