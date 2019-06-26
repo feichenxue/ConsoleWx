@@ -105,6 +105,7 @@ class ConsoleWx(object):
         self.Mplist = Mplist  #关注的微信公众号
         self.myself = myself
         self.bot = bot
+        self.SysType = SysType
 
     def get_datetime(self):
         now = datetime.datetime.now()
@@ -206,6 +207,7 @@ class ConsoleWx(object):
         return receive_time
 
 
+
     def Receive_one(self, who, datatime):
         # rLock = threading.RLock()  #RLock对象
         if len(str(who).split()) > 1:
@@ -287,6 +289,7 @@ class ConsoleWx(object):
                 continue
             elif user_input == "h" or user_input == "help":
                 self.Print_help()
+                continue
             elif user_input == "u":
                 #self.bot.registered.enable(self.print_one_messages)
                 who = self.Get_who_msg()
