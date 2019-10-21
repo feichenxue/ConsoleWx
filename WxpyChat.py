@@ -240,7 +240,10 @@ class ConsoleWx(object):
         def print_all_messages(msg):
             rLock.acquire()
             msgtypelist = ["Picture","Recording","Attachment","Video"]
-            print("\n[{} \033[1;31m接收所有消息 ↩\033[0m]".format(msg.receive_time), "\033[0;32m{}\033[0m".format(msg))
+            if self.SysType == "win32":
+                print("\n[{} \033[1;31m接收所有消息 ↙\033[0m]".format(msg.receive_time), "\033[0;32m{}\033[0m".format(msg))
+            else:
+                print("\n[{} \033[1;31m接收所有消息 ↩\033[0m]".format(msg.receive_time), "\033[0;32m{}\033[0m".format(msg))
             if msg.type in msgtypelist:
                 datatime = self.Save_medis_all(msg)
             rLock.release()
