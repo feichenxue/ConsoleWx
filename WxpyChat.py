@@ -218,9 +218,15 @@ class ConsoleWx(object):
         @self.bot.register(who, except_self=False)
         def print_one_messages(msg):
             if Who in self.friendslist:
-                print("\n[{} 【{}】@{} <好友> (\033[1;31m接收\033[0m)↩]: ".format(datatime, Who, self.myself), "\033[0;32m{}\033[0m".format(msg))
+                if self.SysType == "win32":
+                    print("\n[{} 【{}】@{} <好友> (\033[1;31m接收\033[0m) ↙]: ".format(datatime, Who, self.myself), "\033[0;32m{}\033[0m".format(msg))
+                else:
+                    print("\n[{} 【{}】@{} <好友> (\033[1;31m接收\033[0m) ↩]: ".format(datatime, Who, self.myself), "\033[0;32m{}\033[0m".format(msg))
             else:
-                print("\n[{} 【{}】@{} <群聊> (\033[1;31m接收\033[0m)↩]: ".format(datatime, Who, self.myself), "\033[0;32m{}\033[0m".format(msg))
+                if self.SysType == "win32":
+                    print("\n[{} 【{}】@{} <群聊> (\033[1;31m接收\033[0m)↙]: ".format(datatime, Who, self.myself), "\033[0;32m{}\033[0m".format(msg))
+                else:
+                    print("\n[{} 【{}】@{} <群聊> (\033[1;31m接收\033[0m)↩]: ".format(datatime, Who, self.myself), "\033[0;32m{}\033[0m".format(msg))
             self.Save_medis_one(msg, Who)
             # rLock.release()
         self.bot.join()
@@ -274,10 +280,15 @@ class ConsoleWx(object):
             now = datetime.datetime.now()
             nowtime = now.strftime('%Y-%m-%d %H:%M:%S')
             if who in self.friendslist:
-                inputflag = nowtime + " {root}@【{who}】 <好友> (发送)↪".format(root=self.myself, who=who)
+                if self.SysType == "win32":
+                    inputflag = nowtime + " {root}@【{who}】 <好友> (发送)→".format(root=self.myself, who=who)
+                else:
+                    inputflag = nowtime + " {root}@【{who}】 <好友> (发送)↪".format(root=self.myself, who=who)
             elif who in self.groupslist:
-                inputflag = nowtime + " {root}@【{who}】 <群聊> (发送)↪".format(root=self.myself, who=who)
-
+                if self.SysType == "win32":
+                    inputflag = nowtime + " {root}@【{who}】 <群聊> (发送)→".format(root=self.myself, who=who)
+                else:
+                    inputflag = nowtime + " {root}@【{who}】 <群聊> (发送)↪".format(root=self.myself, who=who)
             user_input = prompt('[{}]: '.format(inputflag), history=FileHistory('send.txt'),
                                             auto_suggest=AutoSuggestFromHistory(),
                                             completer=self.Emoticon,
@@ -354,4 +365,3 @@ def main():
 
 if __name__ == '__main__':
     main()
-        
