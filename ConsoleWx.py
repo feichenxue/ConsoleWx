@@ -10,6 +10,7 @@ import redis
 import pymongo
 import requests
 import datetime
+from queue import Queue
 from wxpy import *
 import threading
 from prompt_toolkit import prompt
@@ -65,11 +66,12 @@ class ChatRobot(object):
         self.groupslist = groupslist
         self.NameCompleter = NameCompleter
         self.robotapi_url = robotapi_url
+        self.console = "console"
         self.msgtypelist = ["Picture","Recording","Attachment","Video"]
         
 
     #连接redis
-    def con_redis(self, host='172.16.9.74', port='16379', db=1):
+    def con_redis(self, host='172.16.9.74', port='16379', db=3):
         pool = redis.ConnectionPool(host=host, port=port, db=db)
         r = redis.Redis(connection_pool=pool)
         return r
@@ -106,11 +108,13 @@ class ChatRobot(object):
         else:
             return False
 
-    def save_to_mongodb(self, insert_content):
+    def save_to_mongodb(self, insert_content, savedb=True, infomsg=True):
         try:
-            mo_collection = self.con_mongoDB()
-            result = mo_collection.insert_one(insert_content)
-            print("save mongodb success!!!")
+            if savedb:
+                mo_collection = self.con_mongoDB()
+                result = mo_collection.insert_one(insert_content)
+                if infomsg:
+                    print("save mongodb success!!!")
         except Exception as e:
             print(e)
 
@@ -124,13 +128,44 @@ class ChatRobot(object):
             print(e)
 
 
+    def my_robot_api(self, inputmsg):
+        q = Queue()
+        myrobot = self.bot.mps().search("飞沉血")[1]
+        myrobot.send(inputmsg)
+        @self.bot.register(myrobot)
+        def get_msg(msg):
+            print("自动返回的消息为: ", msg)
+            q.put(msg.text)
+
+        send_msg = q.get()
+        return send_msg
+
+
+    #接收某个好友或群聊消息并且用我的接口自动回复
+    def Receive_Relpy_My_Msg(self, who):
+        @self.bot.register(who)
+        def print_one_messages(msg):
+            if self.SysType == "win32":
+                print("\n[{} \033[1;31m接收到的消息 ↙\033[0m]: ".format(msg.receive_time), "\033[0;32m{}\033[0m".format(msg))
+            else:
+                print("\n[{} \033[1;31m接收到的消息 ↩\033[0m]".format(msg.receive_time), "\033[0;32m{}\033[0m".format(msg))
+            if msg.type != "Text":
+                reply_content = self.my_robot_api("不是文字消息！")
+            else:                
+                reply_content = self.my_robot_api(msg.text)
+            msg.reply(reply_content)
+            replay_datetime = self.get_datetime()
+            print("自动回复的消息为：[{0}]: {1}".format(replay_datetime, reply_content))
+            
+        self.bot.join()
+
 
     #接收某个好友或群聊消息并且自动回复
     def Receive_Relpy_Msg(self, who):
         @self.bot.register(who, except_self=False)
         def print_one_messages(msg):
             if self.SysType == "win32":
-                print("\n[{} 接收到的消息 ↩]: ".format(msg.receive_time), "{}".format(msg))
+                print("\n[{} \033[1;31m接收到的消息 ↙\033[0m]: ".format(msg.receive_time), "\033[0;32m{}\033[0m".format(msg))
             else:
                 print("\n[{} \033[1;31m接收到的消息 ↩\033[0m]".format(msg.receive_time), "\033[0;32m{}\033[0m".format(msg))
        
@@ -147,7 +182,7 @@ class ChatRobot(object):
         @self.bot.register(except_self=False)
         def print_one_messages(msg):
             if self.SysType == "win32":
-                print("\n[{} 接收到的消息 ↩]: ".format(msg.receive_time), "{}".format(msg))
+                print("\n[{} \033[1;31m接收到的消息 ↙\033[0m]: ".format(msg.receive_time), "\033[0;32m{}\033[0m".format(msg))
             else:
                 print("\n[{} \033[1;31m接收到的消息 ↩\033[0m]".format(msg.receive_time), "\033[0;32m{}\033[0m".format(msg))           
             if msg.text not in self.msgtypelist:        
@@ -160,89 +195,101 @@ class ChatRobot(object):
         self.bot.join()
 
     #仅仅打印全部消息，不做任何其它操作
-    def Receive_All(self):
+    def Receive_All(self, savedb=True, infomsg=True):
         """
         简单示例：
         test = ChatRobot()
         test.Receive_All()
+        savedb == True 时，将保存消息到mongodb, 为False时，不保存，默认为保存消息
+        infomsg 默认为True，打印保存消息
         """
         @self.bot.register(except_self=False)
         def print_all_messages(msg):
             if self.SysType == "win32":
-                print("\n[{} 接收所有消息 ↩]".format(msg.receive_time), "{}".format(msg))
+                if savedb:
+                    print("\n[{} \033[1;31m接收所有消息(DB) ↙\033[0m]".format(msg.receive_time), "\033[0;32m{}\033[0m".format(msg))
+                else:
+                    print("\n[{} \033[1;31m接收所有消息 ↙\033[0m]".format(msg.receive_time), "\033[0;32m{}\033[0m".format(msg))
             else:
-                print("\n[{} \033[1;31m接收所有消息 ↩\033[0m]".format(msg.receive_time), "\033[0;32m{}\033[0m".format(msg))
-            #将消息保存到mongodb
-            print("保存消息到mongodb!!!")
+                if savedb:
+                    print("\n[{} \033[1;31m接收所有消息(DB) ↩\033[0m]".format(msg.receive_time), "\033[0;32m{}\033[0m".format(msg))
+                else:
+                    print("\n[{} \033[1;31m接收所有消息 ↩\033[0m]".format(msg.receive_time), "\033[0;32m{}\033[0m".format(msg))
+            if savedb:
+                #将消息保存到mongodb
+                if infomsg:
+                    print("保存消息到mongodb!!!")
 
-            if "Group" not in str(msg.sender):
-                senders = self.get_user(str(msg.sender))
-            else:
-                senders = self.get_user(str(msg.sender)) + ">" + self.get_user(str(msg.member))
+                if "Group" not in str(msg.sender):
+                    senders = self.get_user(str(msg.sender))
+                else:
+                    senders = self.get_user(str(msg.sender)) + ">" + self.get_user(str(msg.member))
 
-            receivers = self.get_user(str(msg.receiver))
-            msgtype = msg.type
+                receivers = self.get_user(str(msg.receiver))
+                msgtype = msg.type
 
-            #判断消息类型
-            if msg.type in self.msgtypelist:               
-                saveurl = self.Save_medis_all(msg, True)
-                msg_content = {
-                    '消息类型': msgtype,
-                    '访问资源的URL': saveurl
-                }
-
-                insert_content = {
-                        '消息发送时间': msg.create_time,
-                        '消息接收时间': msg.receive_time,
-                        '消息发送者': senders,
-                        '消息接收者': receivers,
-                        '消息内容': msg_content
-                    }
-
-                print("需要插入的内容为：", insert_content)
-                s = threading.Thread(target=self.save_to_mongodb, args=(insert_content,))
-                s.start()
-
-                #保存文件
-                saveurl = threading.Thread(target=self.Save_medis_all, args=(msg,))
-                saveurl.start()
-            else:
-                if msg.url:
+                #判断消息类型
+                if msg.type in self.msgtypelist:               
+                    saveurl = self.Save_medis_all(msg, True)
                     msg_content = {
-                    '消息类型': msgtype,
-                    '文本内容': msg.text,
-                    '消息URL': msg.url
+                        '消息类型': msgtype,
+                        '访问资源的URL': saveurl
                     }
-
+    
                     insert_content = {
-                        '消息发送时间': msg.create_time,
-                        '消息接收时间': msg.receive_time,
-                        '消息发送者': senders,
-                        '消息接收者': receivers,
-                        '消息内容': msg_content
-                    }
-                else: 
+                            '消息发送时间': msg.create_time,
+                            '消息接收时间': msg.receive_time,
+                            '消息发送者': senders,
+                            '消息接收者': receivers,
+                            '消息内容': msg_content
+                        }
+                    if infomsg:
+                        print("需要插入的内容为：", insert_content)
 
-                    msg_content = {
-                    '消息类型': msgtype,
-                    '文本内容': msg.text
-                    }
+                    s = threading.Thread(target=self.save_to_mongodb, args=(insert_content, savedb, infomsg,))
+                    s.start()
 
-                    insert_content = {
-                        '消息发送时间': msg.create_time,
-                        '消息接收时间': msg.receive_time,
-                        '消息发送者': senders,
-                        '消息接收者': receivers,
-                        '消息内容': msg_content
-                    }
+                    #保存文件
+                    saveurl = threading.Thread(target=self.Save_medis_all, args=(msg,))
+                    saveurl.start()
+                else:
+                    if msg.url:
+                        msg_content = {
+                        '消息类型': msgtype,
+                        '文本内容': msg.text,
+                        '消息URL': msg.url
+                        }
+    
+                        insert_content = {
+                            '消息发送时间': msg.create_time,
+                            '消息接收时间': msg.receive_time,
+                            '消息发送者': senders,
+                            '消息接收者': receivers,
+                            '消息内容': msg_content
+                        }
+                    else: 
+    
+                        msg_content = {
+                        '消息类型': msgtype,
+                        '文本内容': msg.text
+                        }
 
-                print("需要插入的内容为：", insert_content)
-                s = threading.Thread(target=self.save_to_mongodb, args=(insert_content,))
-                s.start()
+                        insert_content = {
+                            '消息发送时间': msg.create_time,
+                            '消息接收时间': msg.receive_time,
+                            '消息发送者': senders,
+                            '消息接收者': receivers,
+                            '消息内容': msg_content
+                        }
+                    if infomsg:
+                        print("需要插入的内容为：", insert_content)
+
+                    s = threading.Thread(target=self.save_to_mongodb, args=(insert_content, savedb, infomsg,))
+                    s.start()
 
         self.bot.join()
 
-    def  Receive_one(self, my_obj):
+    def Receive_one(self, my_obj):
         @self.bot.register(my_obj, except_self=False)
         def print_one_messages(msg):
             print(msg)
@@ -253,41 +300,45 @@ class ChatRobot(object):
         nowtime = now.strftime('%Y-%m-%d %H:%M:%S')
         return nowtime
 
-    #获取好友或群聊对象，可以通过接口，也可以通过终端
-    def get_who_msg(self, userinput):
+    def get_func_who(self, userinput):
         if userinput not in self.friendslist and userinput not in self.groupslist:
-            print("您输入的好友或者群里不存在，请重新输入!")
+            print("您输入的好友或者群聊不存在，请重新输入!")
         elif userinput in self.friendslist:
             my_friend = self.bot.friends().search(userinput)[0]
             return my_friend
         elif userinput in self.groupslist:
             my_group = self.bot.groups().search(userinput)[0]
             return my_group
-        else:    
-            while True:
-                datetimeinfo = self.get_datetime()
-                inputflag = datetimeinfo + " {}".format(self.myself)
-                user_input = prompt('[{}{}]: '.format(inputflag, "@InputUser"),
-                        history=FileHistory('history.txt'),
-                        auto_suggest=AutoSuggestFromHistory(),
-                        completer=self.NameCompleter,
-                        )
-                #判断用户输入
-                if user_input == "":
-                    continue
-                elif user_input not in self.friendslist and user_input not in self.groupslist:
-                    print("您输入的好友或者群里不存在，请重新输入!")
-                    continue
-                elif user_input in self.friendslist:
-                    print("您输入的用户为: ", user_input)
-                    my_friend = self.bot.friends().search(user_input)[0]
-                    return my_friend
-                    break
-                else:
-                    print("你输入的群聊名称为: ", user_input)
-                    my_group = self.bot.groups().search(user_input)[0]
-                    return my_group
-                    break
+        elif userinput == self.console:
+            self.get_who_msg()
+
+
+    #获取好友或群聊对象，可以通过接口，也可以通过终端
+    def get_who_msg(self):   
+        while True:
+            datetimeinfo = self.get_datetime()
+            inputflag = datetimeinfo + " {}".format(self.myself)
+            user_input = prompt('[{}{}]: '.format(inputflag, "@InputUser"),
+                    history=FileHistory('history.txt'),
+                    auto_suggest=AutoSuggestFromHistory(),
+                    completer=self.NameCompleter,
+                    )
+            #判断用户输入
+            if user_input == "":
+                continue
+            elif user_input not in self.friendslist and user_input not in self.groupslist:
+                print("您输入的好友或者群里不存在，请重新输入!")
+                continue
+            elif user_input in self.friendslist:
+                print("您输入的用户为: ", user_input)
+                my_friend = self.bot.friends().search(user_input)[0]
+                return my_friend
+                break
+            else:
+                print("你输入的群聊名称为: ", user_input)
+                my_group = self.bot.groups().search(user_input)[0]
+                return my_group
+                break
 
 
 
@@ -324,7 +375,7 @@ class ChatRobot(object):
 
 
 
-    def console(self):
+    def Console(self):
         #建立用户对象
         my_obj = self.get_who_msg()
 
@@ -356,11 +407,8 @@ class ChatRobot(object):
                 continue
             elif console_input == "q" or console_input == "exit":
                 sys.exit(0)
+            elif console_input == "myrobot":
+                print("开启我的自动聊天功能！")
+                r = threading.Thread(target=self.Receive_Relpy_My_Msg, args=(my_obj,))
+                r.start()
             continue
-
-
-
-
-
-            
-
