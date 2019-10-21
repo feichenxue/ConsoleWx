@@ -76,10 +76,10 @@ class ConsoleWx(object):
 
         #添加表格数据
         if SysType == "win32":
-            SysType = "Windows"
+            ShowsysType = "Windows"
         table.align["登录名"] = "1"
         table.padding_width = 2
-        table.add_row(["欢迎使用微信终端聊天小工具", myself, SysType, len(friendslist), "进入用户会话后 输入 h 或 help 查看帮助信息"])
+        table.add_row(["欢迎使用微信终端聊天小工具", myself, ShowsysType, len(friendslist), "进入用户会话后 输入 h 或 help 查看帮助信息"])
         print(table)
 
         # 合并 friendslist + groupslist
