@@ -412,3 +412,4 @@ class ChatRobot(object):
                 r = threading.Thread(target=self.Receive_Relpy_My_Msg, args=(my_obj,))
                 r.start()
             continue
+            
