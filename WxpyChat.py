@@ -321,7 +321,10 @@ class ConsoleWx(object):
                 print(self.Mplist)
                 continue
             elif user_input == "all":
-                print("\nAll messages are about to start receiving !!! ↩\n")
+                if self.SysType == "win32":
+                    print("\nAll messages are about to start receiving !!!↙\n")
+                else:
+                    print("\nAll messages are about to start receiving !!!↩\n")
                 self.Print_all_msg()
                 #self.bot.registered.enable(self.print_all_messages)
                 continue
