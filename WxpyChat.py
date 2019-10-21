@@ -2,8 +2,10 @@
 # -*- coding: UTF-8 -*-
 
 import re
+import os
 import sys
 import time
+import signal
 import datetime
 import threading
 from wxpy import *
@@ -103,6 +105,7 @@ class ConsoleWx(object):
         self.Mplist = Mplist  #关注的微信公众号
         self.myself = myself
         self.bot = bot
+        self.SysType = SysType
 
     def get_datetime(self):
         now = datetime.datetime.now()
@@ -169,6 +172,42 @@ class ConsoleWx(object):
         return who
 
 
+    def Save_medis_one(self, msg, who):
+        now = datetime.datetime.now()
+        nowtime = now.strftime('%Y%m%d%H%M%S')
+        receive_time = msg.receive_time
+        msg_sender = who
+        if str(msg.member) == "None":
+            specific_sender = msg_sender
+        else:
+            specific_sender = re.sub(">", "" ,str(msg.member).split()[1])
+        file_name = specific_sender + "-" + msg.file_name
+        save_path_name = "media/" + msg_sender
+        if not os.path.isdir(save_path_name):
+            os.makedirs(save_path_name)
+        file_path = save_path_name + "/" + file_name
+        msg.get_file(save_path=file_path)
+
+
+    def Save_medis_all(self, msg):
+        now = datetime.datetime.now()
+        nowtime = now.strftime('%Y%m%d%H%M%S')
+        receive_time = msg.receive_time
+        msg_sender = re.sub(">", "" ,str(msg.sender).split()[1])
+        if str(msg.member) == "None":
+            specific_sender = msg_sender
+        else:
+            specific_sender = re.sub(">", "" ,str(msg.member).split()[1])
+        file_name = specific_sender + "-" + msg.file_name
+        save_path_name = "media/" + msg_sender
+        if not os.path.isdir(save_path_name):
+            os.makedirs(save_path_name)
+        file_path = save_path_name + "/" + file_name
+        msg.get_file(save_path=file_path)
+        return receive_time
+
+
+
     def Receive_one(self, who, datatime):
         # rLock = threading.RLock()  #RLock对象
         if len(str(who).split()) > 1:
@@ -178,22 +217,30 @@ class ConsoleWx(object):
 
         @self.bot.register(who, except_self=False)
         def print_one_messages(msg):
-            # rLock.acquire()
             if Who in self.friendslist:
-                print("\n[{} 【{}】@{} <好友> (\033[1;31m接收\033[0m)↩]: ".format(datatime, Who, self.myself), "\033[0;32m{}\033[0m".format(msg))
+                if self.SysType == "win32":
+                    print("\n[{} 【{}】@{} <好友> (\033[1;31m接收\033[0m) ↙]: ".format(datatime, Who, self.myself), "\033[0;32m{}\033[0m".format(msg))
+                else:
+                    print("\n[{} 【{}】@{} <好友> (\033[1;31m接收\033[0m) ↩]: ".format(datatime, Who, self.myself), "\033[0;32m{}\033[0m".format(msg))
             else:
-                print("\n[{} 【{}】@{} <群聊> (\033[1;31m接收\033[0m)↩]: ".format(datatime, Who, self.myself), "\033[0;32m{}\033[0m".format(msg))
-    
+                if self.SysType == "win32":
+                    print("\n[{} 【{}】@{} <群聊> (\033[1;31m接收\033[0m)↙]: ".format(datatime, Who, self.myself), "\033[0;32m{}\033[0m".format(msg))
+                else:
+                    print("\n[{} 【{}】@{} <群聊> (\033[1;31m接收\033[0m)↩]: ".format(datatime, Who, self.myself), "\033[0;32m{}\033[0m".format(msg))
+            self.Save_medis_one(msg, Who)
             # rLock.release()
         self.bot.join()
 
 
-    def Receive_All(self, datatime):
+    def Receive_All(self):
         rLock = threading.RLock()
         @self.bot.register(except_self=False)
         def print_all_messages(msg):
             rLock.acquire()
-            print("\n[{} \033[1;31m接收所有消息 ↩\033[0m]".format(datatime), "\033[0;32m{}\033[0m".format(msg))
+            msgtypelist = ["Picture","Recording","Attachment","Video"]
+            print("\n[{} \033[1;31m接收所有消息 ↩\033[0m]".format(msg.receive_time), "\033[0;32m{}\033[0m".format(msg))
+            if msg.type in msgtypelist:
+                datatime = self.Save_medis_all(msg)
             rLock.release()
         self.bot.join()
 
@@ -220,8 +267,8 @@ class ConsoleWx(object):
             #r.setDaemon(True)
             r.start()
 
-    def Print_all_msg(self, nowtime):
-        all = threading.Thread(target=self.Receive_All, args=(nowtime,))
+    def Print_all_msg(self):
+        all = threading.Thread(target=self.Receive_All, args=())
         all.start()
 
 
@@ -233,10 +280,15 @@ class ConsoleWx(object):
             now = datetime.datetime.now()
             nowtime = now.strftime('%Y-%m-%d %H:%M:%S')
             if who in self.friendslist:
-                inputflag = nowtime + " {root}@【{who}】 <好友> (发送)↪".format(root=self.myself, who=who)
+                if self.SysType == "win32":
+                    inputflag = nowtime + " {root}@【{who}】 <好友> (发送)→".format(root=self.myself, who=who)
+                else:
+                    inputflag = nowtime + " {root}@【{who}】 <好友> (发送)↪".format(root=self.myself, who=who)
             elif who in self.groupslist:
-                inputflag = nowtime + " {root}@【{who}】 <群聊> (发送)↪".format(root=self.myself, who=who)
-
+                if self.SysType == "win32":
+                    inputflag = nowtime + " {root}@【{who}】 <群聊> (发送)→".format(root=self.myself, who=who)
+                else:
+                    inputflag = nowtime + " {root}@【{who}】 <群聊> (发送)↪".format(root=self.myself, who=who)
             user_input = prompt('[{}]: '.format(inputflag), history=FileHistory('send.txt'),
                                             auto_suggest=AutoSuggestFromHistory(),
                                             completer=self.Emoticon,
@@ -248,6 +300,7 @@ class ConsoleWx(object):
                 continue
             elif user_input == "h" or user_input == "help":
                 self.Print_help()
+                continue
             elif user_input == "u":
                 #self.bot.registered.enable(self.print_one_messages)
                 who = self.Get_who_msg()
@@ -267,7 +320,7 @@ class ConsoleWx(object):
                 continue
             elif user_input == "all":
                 print("\nAll messages are about to start receiving !!! ↩\n")
-                self.Print_all_msg(nowtime)
+                self.Print_all_msg()
                 #self.bot.registered.enable(self.print_all_messages)
                 continue
             elif user_input == "close":
@@ -275,9 +328,9 @@ class ConsoleWx(object):
                 print("功能正在开发中......")
                 continue
             elif user_input == "q":
-                print("Logout Success!")
                 self.bot.logout
-                exit(0)
+                print("Exit Success!")
+                os.kill(os.getpid(), signal.SIGKILL)
             else:
                 if who in self.friendslist:
                     my_friends = self.getfriends(who)
@@ -312,4 +365,3 @@ def main():
 
 if __name__ == '__main__':
     main()
-        
